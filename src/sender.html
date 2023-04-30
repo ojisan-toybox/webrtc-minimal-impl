@@ -51,18 +51,26 @@
         console.log("onsignalingstatechange", e);
       };
 
-      senderConnection.createOffer().then((sdp) => {
-        senderConnection.setLocalDescription(sdp);
-        console.log(JSON.stringify(sdp));
-        alert(
-          `sender の sdp offer を log に出力したので sender に入力してください。`
-        );
-
-        const receiverAnswer = window.prompt(
-          "receiver の SDP answer description を入力してください。"
-        );
-        senderConnection.setRemoteDescription(JSON.parse(receiverAnswer));
-      });
+      senderConnection
+        .createOffer()
+        .then((sdp) => {
+          return senderConnection.setLocalDescription(sdp).then(() => sdp);
+        })
+        .then((sdp) => {
+          console.log(JSON.stringify(sdp));
+          alert(
+            `sender の sdp offer を log に出力したので sender に入力してください。`
+          );
+          const receiverAnswer = window.prompt(
+            "receiver の SDP answer description を入力してください。"
+          );
+          return senderConnection.setRemoteDescription(
+            JSON.parse(receiverAnswer)
+          );
+        })
+        .then(() => {
+          console.info("set remote description");
+        });
     </script>
   </body>
 </html>
