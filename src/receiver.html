@@ -14,11 +14,7 @@
        * @type {RTCConfiguration}
        */
       const CONFIG_FOR_VIEWER = {
-        iceServers: [
-          {
-            urls: "stun:stun.l.google.com:19302",
-          },
-        ],
+        iceServers: [],
       };
 
       const viewerConnection = new RTCPeerConnection(CONFIG_FOR_VIEWER);
