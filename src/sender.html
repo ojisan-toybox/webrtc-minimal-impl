@@ -7,7 +7,8 @@
     <title>sender</title>
   </head>
   <body>
-    <a href="/">roon</a> <a href="../sender">sender</a>
+    <h1>sender</h1>
+    <a href="/">root</a> <a href="../sender">sender</a>
     <script>
       /**
        * @type {RTCConfiguration}
@@ -56,6 +57,11 @@
         alert(
           `sender の sdp offer を log に出力したので sender に入力してください。`
         );
+
+        const receiverAnswer = window.prompt(
+          "receiver の SDP answer description を入力してください。"
+        );
+        senderConnection.setRemoteDescription(JSON.parse(receiverAnswer));
       });
     </script>
   </body>
