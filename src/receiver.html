@@ -75,13 +75,13 @@
           return viewerConnection.createAnswer();
         })
         .then((answer) => {
-          console.log(JSON.stringify(answer));
-          alert(
-            "viewer の SDP answer を log に出力しました。これを viewer の SDP description として sender 側に入力してください。"
-          );
           return viewerConnection.setLocalDescription(answer);
         })
         .then(() => {
+          console.log(JSON.stringify(viewerConnection.localDescription));
+          alert(
+            "viewer の SDP answer を log に出力しました。これを viewer の SDP description として sender 側に入力してください。"
+          );
           console.log("success sdp, peer:", viewerConnection);
         });
     </script>

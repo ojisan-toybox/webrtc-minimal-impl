@@ -69,15 +69,16 @@
           return senderConnection.createOffer();
         })
         .then((desc) => {
-          console.log(JSON.stringify(desc));
+          return senderConnection.setLocalDescription(desc).then(() => desc);
+        })
+        .then((desc) => {
+          console.log(JSON.stringify(senderConnection.localDescription));
           alert(
             `sender の sdp offer を log に出力したので sender に入力してください。`
           );
           return desc;
         })
-        .then((desc) => {
-          return senderConnection.setLocalDescription(desc);
-        })
+
         .then(() => {
           const receiverAnswer = window.prompt(
             "receiver の SDP answer description を入力してください。"
