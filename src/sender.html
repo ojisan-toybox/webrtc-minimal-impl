@@ -8,5 +8,55 @@
   </head>
   <body>
     <a href="/">roon</a> <a href="../sender">sender</a>
+    <script>
+      /**
+       * @type {RTCConfiguration}
+       */
+      const CONFIG_FOR_SENDER = {
+        iceServers: [
+          {
+            urls: ["stun:stun.l.google.com:19302"],
+          },
+        ],
+      };
+
+      const senderConnection = new RTCPeerConnection(CONFIG_FOR_SENDER);
+
+      /**
+       * @param {RTCPeerConnectionIceEvent} e
+       */
+      senderConnection.onicecandidate = (e) => {
+        console.log("onicecandidate", e);
+      };
+
+      /**
+       * @param {Event} e
+       */
+      senderConnection.onconnectionstatechange = (e) => {
+        console.log("onconnectionstatechange", e);
+      };
+
+      /**
+       * @param {Event} e
+       */
+      senderConnection.onnegotiationneeded = (e) => {
+        console.log("onnegotiationneeded", e);
+      };
+
+      /**
+       * @param {Event} e
+       */
+      senderConnection.onsignalingstatechange = (e) => {
+        console.log("onsignalingstatechange", e);
+      };
+
+      senderConnection.createOffer().then((sdp) => {
+        senderConnection.setLocalDescription(sdp);
+        console.log(JSON.stringify(sdp));
+        alert(
+          `sender の sdp offer を log に出力したので sender に入力してください。`
+        );
+      });
+    </script>
   </body>
 </html>
