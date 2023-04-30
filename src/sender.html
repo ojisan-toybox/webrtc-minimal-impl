@@ -51,13 +51,18 @@
         console.log("onsignalingstatechange", e);
       };
 
-      senderConnection
-        .createOffer()
-        .then((sdp) => {
-          return senderConnection.setLocalDescription(sdp).then(() => sdp);
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          return senderConnection.createOffer();
         })
-        .then((sdp) => {
-          console.log(JSON.stringify(sdp));
+        .then((desc) =>
+          senderConnection.setLocalDescription(desc).then(() => {
+            return desc;
+          })
+        )
+        .then((desc) => {
+          console.log(JSON.stringify(desc));
           alert(
             `sender の sdp offer を log に出力したので sender に入力してください。`
           );
@@ -69,8 +74,9 @@
           );
         })
         .then(() => {
-          console.info("set remote description");
-        });
+          console.log("success sdp, peer:", senderConnection);
+        })
+        .catch((e) => console.error(e));
     </script>
   </body>
 </html>

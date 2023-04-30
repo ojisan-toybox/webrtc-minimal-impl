@@ -70,7 +70,10 @@
           alert(
             "viewer の SDP answer を log に出力しました。これを viewer の SDP description として sender 側に入力してください。"
           );
-          viewerConnection.setLocalDescription(answer);
+          return viewerConnection.setLocalDescription(answer);
+        })
+        .then(() => {
+          console.log("success sdp, peer:", viewerConnection);
         });
     </script>
   </body>
