@@ -18,54 +18,55 @@
           {
             urls: "stun:stun.l.google.com:19302",
           },
-          {
-            urls: "stun:stun1.l.google.com:19302",
-          },
-          {
-            urls: "stun:stun2.l.google.com:19302",
-          },
-          {
-            urls: "stun:stun3.l.google.com:19302",
-          },
         ],
       };
 
       const senderConnection = new RTCPeerConnection(CONFIG_FOR_SENDER);
 
+      const candidates = [];
       /**
        * @param {RTCPeerConnectionIceEvent} e
        */
       senderConnection.onicecandidate = (e) => {
-        console.log("onicecandidate", e);
-      };
+        if (!e.candidate) {
+          // 自分(Sender) の ICE を入力させる
+          console.log(JSON.stringify(candidates));
+          alert(
+            `sender の ice candidate はこちらです。receiver 側に入力してください。}`
+          );
 
-      /**
-       * @param {Event} e
-       */
-      senderConnection.onconnectionstatechange = (e) => {
-        console.log("onconnectionstatechange", e);
-      };
+          const receiverIceStr = window.prompt(
+            "sender が提示するICEを入力してください"
+          );
+          if (!receiverIceStr) {
+            throw new Error("sdpAnswer がないのは不正です");
+          }
 
-      /**
-       * @param {Event} e
-       */
-      senderConnection.onnegotiationneeded = (e) => {
-        console.log("onnegotiationneeded", e);
-      };
+          /**
+           * ICE Candidatesを受け取る
+           * @type {RTCIceCandidateInit[]}
+           */
+          const receiverCandidates = JSON.parse(receiverIceStr);
+          receiverCandidates.forEach((candidate) => {
+            if (candidate === null) return;
+            senderConnection.addIceCandidate(candidate).catch((e) => {
+              console.error("Sender addIceCandidate error", e);
+            });
+          });
 
-      /**
-       * @param {Event} e
-       */
-      senderConnection.onsignalingstatechange = (e) => {
-        console.log("onsignalingstatechange", e);
+          return;
+        }
+        candidates.push(e.candidate);
       };
-
       /**
        * @see https://stackoverflow.com/questions/38036552/rtcpeerconnection-onicecandidate-not-fire
        * */
       navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
+        .getUserMedia({ video: true, audio: false })
         .then((stream) => {
+          stream.getTracks().forEach((track) => {
+            senderConnection.addTrack(track, stream);
+          });
           return senderConnection.createOffer();
         })
         .then((desc) => {

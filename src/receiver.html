@@ -9,6 +9,7 @@
   <body>
     <h1>receiver</h1>
     <a href="/">root</a> <a href="../sender">sender</a>
+    <video id="video-el" autoplay playsinline muted="muted"></video>
     <script>
       /**
        * @type {RTCConfiguration}
@@ -18,25 +19,62 @@
           {
             urls: "stun:stun.l.google.com:19302",
           },
-          {
-            urls: "stun:stun1.l.google.com:19302",
-          },
-          {
-            urls: "stun:stun2.l.google.com:19302",
-          },
-          {
-            urls: "stun:stun3.l.google.com:19302",
-          },
         ],
       };
 
       const viewerConnection = new RTCPeerConnection(CONFIG_FOR_VIEWER);
 
+      const videoEl = document.getElementById("video-el");
+
+      if (videoEl === null || !(videoEl instanceof HTMLVideoElement))
+        throw new Error("あるはず");
+
+      viewerConnection.ontrack = (e) => {
+        const stream = event.streams[0];
+        if (stream === undefined) {
+          console.error("stream not found");
+          throw new Error("");
+        }
+
+        window.stream = stream;
+
+        videoEl.srcObject = stream;
+      };
+
+      const candidates = [];
       /**
        * @param {RTCPeerConnectionIceEvent} e
        */
       viewerConnection.onicecandidate = (e) => {
-        console.log("onicecandidate", e);
+        if (!e.candidate) {
+          // 自分(Receiver) の ICE を入力させる
+          console.log(JSON.stringify(candidates));
+          alert(
+            `receiver の ice candidate はこちらです。receiver 側に入力してください。}`
+          );
+
+          const senderIceStr = window.prompt(
+            "sender が提示するICEを入力してください"
+          );
+          if (!senderIceStr) {
+            throw new Error("sdpAnswer がないのは不正です");
+          }
+
+          /**
+           * ICE Candidatesを受け取る
+           * @type {RTCIceCandidateInit[]}
+           */
+          const senderCandidates = JSON.parse(senderIceStr);
+          senderCandidates.forEach((candidate) => {
+            if (candidate === null) return;
+            viewerConnection.addIceCandidate(candidate).catch((e) => {
+              console.error("Sender addIceCandidate error", e);
+            });
+          });
+
+          return;
+        }
+        candidates.push(e.candidate);
       };
 
       /**
