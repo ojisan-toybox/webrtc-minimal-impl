@@ -8,6 +8,7 @@
   </head>
   <body>
     <h1>sender</h1>
+    <video id="video" autoplay></video>
     <a href="/">root</a> <a href="../sender">sender</a>
     <script>
       /**
@@ -21,7 +22,8 @@
         ],
       };
 
-      const senderConnection = new RTCPeerConnection(CONFIG_FOR_SENDER);
+      // 同一マシン間通信なら CONFIG_FOR_SENDER 入れなくても良い
+      const senderConnection = new RTCPeerConnection();
 
       const candidates = [];
       /**
@@ -32,38 +34,26 @@
           // 自分(Sender) の ICE を入力させる
           console.log(JSON.stringify(candidates));
           alert(
-            `sender の ice candidate はこちらです。receiver 側に入力してください。}`
+            `sender の ice candidate はこちらです。receiver 側に入力してください。`
           );
-
-          const receiverIceStr = window.prompt(
-            "sender が提示するICEを入力してください"
-          );
-          if (!receiverIceStr) {
-            throw new Error("sdpAnswer がないのは不正です");
-          }
-
-          /**
-           * ICE Candidatesを受け取る
-           * @type {RTCIceCandidateInit[]}
-           */
-          const receiverCandidates = JSON.parse(receiverIceStr);
-          receiverCandidates.forEach((candidate) => {
-            if (candidate === null) return;
-            senderConnection.addIceCandidate(candidate).catch((e) => {
-              console.error("Sender addIceCandidate error", e);
-            });
-          });
 
           return;
         }
         candidates.push(e.candidate);
       };
+
+      const videoEl = document.getElementById("video");
+
+      if (videoEl === null || !(videoEl instanceof HTMLVideoElement))
+        throw new Error("要素作りミス");
+
       /**
        * @see https://stackoverflow.com/questions/38036552/rtcpeerconnection-onicecandidate-not-fire
        * */
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: false })
         .then((stream) => {
+          videoEl.srcObject = stream;
           stream.getTracks().forEach((track) => {
             senderConnection.addTrack(track, stream);
           });

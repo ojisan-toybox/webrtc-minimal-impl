@@ -22,7 +22,8 @@
         ],
       };
 
-      const viewerConnection = new RTCPeerConnection(CONFIG_FOR_VIEWER);
+      // 同一マシン間通信なら CONFIG_FOR_VIEWER 入れなくても良い
+      const viewerConnection = new RTCPeerConnection();
 
       const videoEl = document.getElementById("video-el");
 
@@ -36,67 +37,10 @@
           throw new Error("");
         }
 
-        window.stream = stream;
-
         videoEl.srcObject = stream;
       };
 
       const candidates = [];
-      /**
-       * @param {RTCPeerConnectionIceEvent} e
-       */
-      viewerConnection.onicecandidate = (e) => {
-        if (!e.candidate) {
-          // 自分(Receiver) の ICE を入力させる
-          console.log(JSON.stringify(candidates));
-          alert(
-            `receiver の ice candidate はこちらです。receiver 側に入力してください。}`
-          );
-
-          const senderIceStr = window.prompt(
-            "sender が提示するICEを入力してください"
-          );
-          if (!senderIceStr) {
-            throw new Error("sdpAnswer がないのは不正です");
-          }
-
-          /**
-           * ICE Candidatesを受け取る
-           * @type {RTCIceCandidateInit[]}
-           */
-          const senderCandidates = JSON.parse(senderIceStr);
-          senderCandidates.forEach((candidate) => {
-            if (candidate === null) return;
-            viewerConnection.addIceCandidate(candidate).catch((e) => {
-              console.error("Sender addIceCandidate error", e);
-            });
-          });
-
-          return;
-        }
-        candidates.push(e.candidate);
-      };
-
-      /**
-       * @param {Event} e
-       */
-      viewerConnection.onconnectionstatechange = (e) => {
-        console.log("onconnectionstatechange", e);
-      };
-
-      /**
-       * @param {Event} e
-       */
-      viewerConnection.onnegotiationneeded = (e) => {
-        console.log("onnegotiationneeded", e);
-      };
-
-      /**
-       * @param {Event} e
-       */
-      viewerConnection.onsignalingstatechange = (e) => {
-        console.log("onsignalingstatechange", e);
-      };
 
       // SDP の設定
       const offer = window.prompt(
@@ -121,6 +65,26 @@
             "viewer の SDP answer を log に出力しました。これを viewer の SDP description として sender 側に入力してください。"
           );
           console.log("success sdp, peer:", viewerConnection);
+        })
+        .then(() => {
+          const senderIceStr = window.prompt(
+            "sender が提示するICEを入力してください"
+          );
+          if (!senderIceStr) {
+            throw new Error("sdpAnswer がないのは不正です");
+          }
+
+          /**
+           * ICE Candidatesを受け取る
+           * @type {RTCIceCandidateInit[]}
+           */
+          const senderCandidates = JSON.parse(senderIceStr);
+          senderCandidates.forEach((candidate) => {
+            if (candidate === null) return;
+            viewerConnection.addIceCandidate(candidate).catch((e) => {
+              console.error("Sender addIceCandidate error", e);
+            });
+          });
         });
     </script>
   </body>
